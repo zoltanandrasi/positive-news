@@ -1,4 +1,4 @@
-name: Teszt és Docker image
+name: Test and Docker image
 
 on:
   push:

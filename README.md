@@ -1,90 +1,96 @@
-# Pozitív hírek
+# Positive News
 
-Saját üzemeltetésű hírgyűjtő oldal, amely magyar hírportálok RSS-csatornáiból
-összegyűjti a pozitív és semleges híreket, és rovatokba rendezve, címmel és
-leaddel jeleníti meg őket. Mesterséges intelligencia és külső szolgáltatás
-nélkül működik, egyetlen Docker konténerben, Synology NAS-on is.
+A self-hosted news aggregator that collects positive and neutral news from the
+RSS feeds of Hungarian news sites and shows them by category, with title and
+lead. The news and the website text are in Hungarian. It needs no AI and no
+external service, and runs in a single Docker container, including on a
+Synology NAS.
 
-## Hogyan működik
+## How it works
 
-1. Beállítható időközönként (alapból 2 óránként) letölti a `config/feeds.yaml`-ban
-   megadott RSS-csatornákat.
-2. A címből és a leadből kulcsszavak alapján kiszűri a negatív híreket
+1. At a configurable interval (every 2 hours by default) it downloads the RSS
+   feeds listed in `config/feeds.yaml`.
+2. It hides negative news based on keywords in the title and lead
    (`config/filters.yaml`).
-3. A híreket rovatba sorolja: a rovatonkénti feedek rögzített rovatba mennek, a
-   vegyes feedeknél a cikk webcíme és RSS-címkéi döntenek.
-4. SQLite adatbázisba menti őket (ismétlődések nélkül), a régieket törli.
-5. A weboldal címlapot, rovatoldalakat és egy `/allapot` oldalt mutat (források
-   állapota és a kiszűrt hírek listája az okkal együtt).
+3. It assigns each article to a category: single-section feeds go to a fixed
+   category, and for mixed feeds the article URL and RSS tags decide.
+4. It stores articles in SQLite without duplicates and deletes old ones.
+5. The website has a home page, category pages and a `/status` page (feed health
+   and the list of blocked articles with the reason).
 
-## Telepítés Synology NAS-ra (Container Manager)
+## Installing on a Synology NAS (Container Manager)
 
-### 1. A Docker image elérhetővé tétele (egyszer kell)
+### 1. Make the Docker image available (once)
 
-Minden `main` ágra kerülő változás után a GitHub Actions automatikusan elkészíti az
-image-et: `ghcr.io/zoltanandrasi/positive-news:latest`.
+Every change merged to `main` triggers GitHub Actions, which builds the image
+`ghcr.io/zoltanandrasi/positive-news:latest`.
 
-Mivel a repó privát, az image is privát lesz. A legegyszerűbb, ha az image-et
-nyilvánossá teszed (a kód nem tartalmaz titkot):
+Because the repository is private, the image is private too. The simplest option
+is to make the image public (the code contains no secrets):
 
-1. GitHub → a profilod → **Packages** → `positive-news`
-2. **Package settings** → lent **Change visibility** → **Public**
+1. GitHub → your profile → **Packages** → `positive-news`
+2. **Package settings** → at the bottom **Change visibility** → **Public**
 
-### 2. Projekt létrehozása a NAS-on
+### 2. Create the project on the NAS
 
-1. **File Station**: hozz létre egy mappát, pl. `docker/positive-news`.
-2. **Container Manager → Projekt → Létrehozás**
-   - Projekt neve: `positive-news`
-   - Elérési út: a fenti mappa
-   - Forrás: **docker-compose.yml létrehozása**, és másold be a repó
-     [`docker-compose.yml`](docker-compose.yml) fájljának tartalmát.
-3. **Tovább → Kész**. A Container Manager letölti az image-et és elindítja.
-4. Nyisd meg: `http://<NAS-IP>:8080`
+1. **File Station**: create a folder, e.g. `docker/positive-news`.
+2. **Container Manager → Project → Create**
+   - Project name: `positive-news`
+   - Path: the folder above
+   - Source: **Create docker-compose.yml**, and paste the contents of
+     [`docker-compose.yml`](docker-compose.yml) from this repository.
+3. **Next → Done**. Container Manager pulls the image and starts it.
+4. Open `http://<NAS-IP>:8080`
 
-Az első frissítés néhány másodperccel az indulás után lefut.
+The first refresh runs a few seconds after startup.
 
-### 3. Frissítés új verzióra
+### 3. Updating to a new version
 
-Container Manager → **Kép (Image)** fül: ha a `positive-news` image mellett
-„Frissítés elérhető” jelzés van, kattints rá, és a konténer az új verzióval indul újra.
-Ha nincs ilyen jelzés: Projekt → `positive-news` → **Művelet → Leállítás**, majd
-**Művelet → Build** (újra letölti a `latest` image-et), végül **Indítás**.
+Container Manager → **Image** tab: if the `positive-news` image shows an
+"Update available" badge, click it and the container restarts on the new
+version. If there is no badge: Project → `positive-news` → **Action → Stop**,
+then **Action → Build** (pulls the `latest` image again), then **Start**.
 
-## Beállítások
+## Settings
 
-A `docker-compose.yml` környezeti változói:
+Environment variables in `docker-compose.yml`:
 
-| Változó | Alapérték | Jelentés |
+| Variable | Default | Meaning |
 |---|---|---|
-| `REFRESH_INTERVAL_HOURS` | `2` | Frissítés gyakorisága órában (tört is lehet, pl. `0.5`) |
-| `RETENTION_DAYS` | `14` | Ennyi napnál régebbi hírek törlődnek |
-| `LEAD_MAX_CHARS` | `320` | A lead maximális hossza |
-| `SITE_TITLE` | `Jó Hírek` | Az oldal neve |
-| `TZ` | `Europe/Budapest` | Időzóna |
+| `REFRESH_INTERVAL_HOURS` | `2` | Refresh interval in hours (fractions allowed, e.g. `0.5`) |
+| `RETENTION_DAYS` | `14` | Articles older than this are deleted |
+| `LEAD_MAX_CHARS` | `320` | Maximum lead length |
+| `SITE_TITLE` | `Jó Hírek` | Site name shown in the header |
+| `UI_LANGUAGE` | `hu` | Website text language: `hu` or `en` (the news itself is always Hungarian) |
+| `TZ` | `Europe/Budapest` | Time zone |
 
-Módosítás után a projektet újra kell indítani.
+Restart the project after changing them.
 
-### Források és szűrők
+### Feeds and filters
 
-Első induláskor a projekt mappájában létrejön a `config/feeds.yaml` és a
-`config/filters.yaml`. Ezeket File Station-ből (vagy a Text Editor csomaggal)
-szerkesztheted; a változás a következő frissítéskor lép életbe.
+On first start, `config/feeds.yaml` and `config/filters.yaml` are created in the
+project folder. Edit them in File Station (or with the Text Editor package);
+changes apply from the next refresh.
 
-- **Új forrás:** add hozzá a `feeds:` listához névvel, URL-lel és rovattal.
-- **Hibás forrás:** az `/allapot` oldalon pirossal látszik; javítsd az URL-t, vagy
-  tedd mellé: `enabled: false`.
-- **Túl sok vagy túl kevés kiszűrt hír:** az `/allapot` oldal alján látod, mi miért
-  esett ki; ehhez igazítsd a `filters.yaml` listáit.
+- **New feed:** add it to the `feeds:` list with a name, URL and category.
+- **Broken feed:** it shows in red on the `/status` page; fix the URL or add
+  `enabled: false`.
+- **Too many or too few blocked articles:** the bottom of the `/status` page shows
+  what was blocked and why; adjust the lists in `filters.yaml`. The filter terms
+  are Hungarian because the articles are, and each has its English meaning in a
+  comment.
 
-## Fejlesztés
+## Development
 
 ```bash
 python -m venv .venv && . .venv/bin/activate
 pip install -r requirements-dev.txt
 pytest
 
-# helyi futtatás
+# run locally
 DATA_DIR=./data CONFIG_DIR=./config uvicorn app.main:create_app --factory --reload
-# egyszeri frissítés kézzel
+# run one refresh by hand
 DATA_DIR=./data CONFIG_DIR=./config python -m app.fetcher
 ```
+
+Website text lives in `app/i18n.py`.

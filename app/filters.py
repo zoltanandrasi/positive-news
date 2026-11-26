@@ -1,4 +1,4 @@
-"""Kulcsszavas szűrés a negatív hírek kiszűrésére."""
+"""Keyword-based filtering of negative news."""
 from __future__ import annotations
 
 import re
@@ -28,27 +28,27 @@ class NewsFilter:
         self._word_re = None
         if self.block_words:
             alts = "|".join(re.escape(w) for w in sorted(self.block_words, key=len, reverse=True))
-            # \w Unicode-os, így az ékezetes betűk is szókaraktereknek számítanak.
+            # \w is Unicode-aware, so accented letters count as word characters.
             self._word_re = re.compile(rf"(?<!\w)({alts})(?!\w)", re.IGNORECASE)
 
     def check(self, title: str, lead: str) -> str | None:
-        """Visszaadja a kiszűrés okát, vagy None-t, ha a hír megjelenhet."""
+        """Return the reason the article is blocked, or None if it may be shown."""
         t = (title or "").strip().lower()
         text = f"{t}\n{(lead or '').lower()}"
 
         for prefix in self.block_title_prefixes:
             if t.startswith(prefix):
-                return f"cím eleje: {prefix}"
+                return f"title prefix: {prefix}"
 
         if any(p in text for p in self.allow_phrases):
             return None
 
         for stem in self.block_stems:
             if stem in text:
-                return f"tiltott szótő: {stem}"
+                return f"blocked stem: {stem}"
 
         if self._word_re:
             m = self._word_re.search(text)
             if m:
-                return f"tiltott szó: {m.group(1).lower()}"
+                return f"blocked word: {m.group(1).lower()}"
         return None

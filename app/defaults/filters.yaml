@@ -1,109 +1,110 @@
-# Negatív hírek szűrése.
-# Egy hír kimarad, ha a címében vagy a leadjében szerepel valamelyik tiltó kifejezés.
-# Kis- és nagybetű nem számít. A módosítás a következő frissítéstől él
-# (a már letöltött hírekre nem hat visszamenőleg).
+# Negative news filter.
+# An article is hidden if its title or lead contains any blocked term.
+# Matching is case-insensitive. Changes apply from the next refresh
+# (articles already stored are not re-checked).
 #
-# A "/allapot" oldalon látod a kiszűrt híreket és az okukat, így könnyű finomhangolni.
+# The terms are in Hungarian because the articles are Hungarian; the comment after
+# each term gives its English meaning.
+# The "/status" page lists blocked articles with the reason, which makes tuning easy.
 
-# Szótövek: a szó BÁRMELY részén illeszkednek.
-# Pl. "halál" kiszűri a "halálos", "halálra", "halálát" szavakat is.
+# Stems: match ANYWHERE inside a word.
+# E.g. "halál" (death) also blocks "halálos", "halálra", "halálát".
 block_stems:
-  # halál, baleset, sérülés
-  - halál
-  - halott
-  - meghalt
-  - elhunyt
-  - életét vesztette
-  - holttest
-  - baleset
-  - karambol
-  - tragédi
-  - tragikus
-  - megsérült
-  - súlyosan sérült
-  - mentők
-  - öngyilkos
-  - eltűnt
-  # erőszak, bűnözés
-  - gyilkos
-  - meggyilkol
-  - lövöldöz
-  - késel
-  - erőszak
-  - bántalmaz
-  - verekedés
-  - rablás
-  - kirabol
-  - betörő
-  - bűncselekmény
-  - bűnöző
-  - letartóztat
-  - őrizetbe
-  - börtön
-  - vádemel
-  - pedofil
-  - csaló
-  - csalás
-  - korrupci
-  - botrány
-  # háború, terror
-  - háború
-  - fegyveres
-  - terror
-  - merénylet
-  - robbanás
-  - bombáz
-  - rakétatámadás
-  - légicsapás
-  - ostrom
-  - túszejt
-  - túszok
-  # katasztrófa, betegség
-  - katasztróf
-  - földrengés
-  - árvíz
-  - tűzvész
-  - leégett
-  - lángokban
-  - járvány
-  - rákos
-  - daganat
-  # válság, gazdasági rossz hírek
-  - csőd
-  - válság
-  - elbocsát
-  - leépítés
-  - sztrájk
-  - tüntetés
-  # Opcionális: politikai hírek kiszűréséhez vedd ki a # jelet az alábbi sorok elől
-  # - kormány
-  # - miniszter
-  # - parlament
-  # - ellenzék
-  # - fidesz
-  # - választás
+  # death, accidents, injuries
+  - halál  # death
+  - halott  # dead
+  - meghalt  # died
+  - elhunyt  # passed away
+  - életét vesztette  # lost their life
+  - holttest  # corpse
+  - baleset  # accident
+  - karambol  # crash
+  - tragédi  # tragedy
+  - tragikus  # tragic
+  - megsérült  # was injured
+  - súlyosan sérült  # seriously injured
+  - mentők  # ambulance
+  - öngyilkos  # suicide
+  - eltűnt  # missing
+  # violence, crime
+  - gyilkos  # murder(er)
+  - meggyilkol  # murdered
+  - lövöldöz  # shooting
+  - késel  # stabbing
+  - erőszak  # violence
+  - bántalmaz  # abuse
+  - verekedés  # brawl
+  - rablás  # robbery
+  - kirabol  # robbed
+  - betörő  # burglar
+  - bűncselekmény  # crime
+  - bűnöző  # criminal
+  - letartóztat  # arrest
+  - őrizetbe  # taken into custody
+  - börtön  # prison
+  - vádemel  # indictment
+  - pedofil  # paedophile
+  - csaló  # fraudster
+  - csalás  # fraud
+  - korrupci  # corruption
+  - botrány  # scandal
+  # war, terror
+  - háború  # war
+  - fegyveres  # armed
+  - terror  # terror
+  - merénylet  # assassination
+  - robbanás  # explosion
+  - bombáz  # bombing
+  - rakétatámadás  # missile attack
+  - légicsapás  # air strike
+  - ostrom  # siege
+  - túszejt  # hostage-taking
+  - túszok  # hostages
+  # disasters, illness
+  - katasztróf  # disaster
+  - földrengés  # earthquake
+  - árvíz  # flood
+  - tűzvész  # blaze
+  - leégett  # burned down
+  - lángokban  # in flames
+  - járvány  # epidemic
+  - rákos  # cancerous
+  - daganat  # tumour
+  # crisis, bad economic news
+  - csőd  # bankruptcy
+  - válság  # crisis
+  - elbocsát  # layoff
+  - leépítés  # downsizing
+  - sztrájk  # strike
+  - tüntetés  # protest
+  # Optional: to block political news, remove the # in front of the lines below
+  # - kormány  # government
+  # - miniszter  # minister
+  # - parlament  # parliament
+  # - ellenzék  # opposition
+  # - fidesz  # party name
+  # - választás  # election
 
-# Teljes szavak: csak önálló szóként illeszkednek (pl. "öl" nem szűri ki a "völgy"-et).
+# Whole words: match only as a standalone word (e.g. "öl" (kills) does not block "völgy" (valley)).
 block_words:
-  - öl
-  - ölt
-  - megölt
-  - lelőtték
-  - rák
-  - per
-  - túsz
-  - túszt
+  - öl  # kills
+  - ölt  # killed
+  - megölt  # murdered
+  - lelőtték  # was shot
+  - rák  # cancer
+  - per  # lawsuit
+  - túsz  # hostage
+  - túszt  # hostage
 
-# Kivételek: ha a hír ezek valamelyikét tartalmazza, a tiltó szavak nem számítanak.
-# Pl. "halálosan jó", "katasztrófavédelem gyakorlat".
+# Exceptions: if an article contains any of these, the blocked terms are ignored.
 allow_phrases:
-  - halálosan jó
-  - életmentő
-  - megmentett
-  - túlélte
+  - halálosan jó  # "deadly good"
+  - életmentő  # life-saving
+  - megmentett  # rescued
+  - túlélte  # survived
 
-# Ha egy hír címe ezek valamelyikével kezdődik, kimarad (pl. hirdetések, percről percre tudósítások).
+# Articles whose title starts with one of these are hidden (sponsored content, ads).
 block_title_prefixes:
-  - "Szponzorált"
-  - "PR-cikk"
-  - "Hirdetés"
+  - "Szponzorált"   # sponsored
+  - "PR-cikk"       # PR article
+  - "Hirdetés"      # advertisement

@@ -3,13 +3,12 @@
 {% block content %}
   {% if not top %}
     <section class="empty">
-      <h2>Még nincsenek hírek</h2>
-      <p>Az első frissítés az indulás után néhány másodperccel lefut. Pár perc múlva frissítsd az oldalt,
-         vagy nézd meg az <a href="/allapot">állapotoldalt</a>.</p>
+      <h2>{{ t.no_news_title }}</h2>
+      <p>{{ t.no_news_body }} <a href="/status">{{ t.status }}</a></p>
     </section>
   {% else %}
     <section class="top">
-      <h2 class="section-title">Legfrissebb</h2>
+      <h2 class="section-title">{{ t.latest }}</h2>
       <div class="grid top-grid">
         {% for a in top %}{{ card(a, category_names, show_category=true, big=loop.first) }}{% endfor %}
       </div>
@@ -17,11 +16,11 @@
 
     {% for s in sections %}
       <section>
-        <h2 class="section-title"><a href="/rovat/{{ s.category.slug }}">{{ s.category.name }}</a></h2>
+        <h2 class="section-title"><a href="/category/{{ s.category.slug }}">{{ s.category.name }}</a></h2>
         <div class="grid">
           {% for a in s.articles %}{{ card(a, category_names) }}{% endfor %}
         </div>
-        <p class="more"><a href="/rovat/{{ s.category.slug }}">További {{ s.category.name | lower }} hírek →</a></p>
+        <p class="more"><a href="/category/{{ s.category.slug }}">{{ t.more_in.format(name=s.category.name) }}</a></p>
       </section>
     {% endfor %}
   {% endif %}

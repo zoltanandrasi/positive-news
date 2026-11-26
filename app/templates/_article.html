@@ -9,7 +9,7 @@
     <h3><a href="{{ a.link }}" target="_blank" rel="noopener noreferrer">{{ a.title }}</a></h3>
     {% if a.lead %}<p class="lead">{{ a.lead }}</p>{% endif %}
     <p class="meta">
-      {% if show_category %}<a class="tag" href="/rovat/{{ a.category }}">{{ category_names.get(a.category, a.category) }}</a>{% endif %}
+      {% if show_category %}<a class="tag" href="/category/{{ a.category }}">{{ category_names.get(a.category, a.category) }}</a>{% endif %}
       <span>{{ a.source }}</span> · <time>{{ a.published_at | hutime }}</time>
     </p>
   </div>

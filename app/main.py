@@ -1,4 +1,4 @@
-"""Webszerver és ütemező."""
+"""Web server and scheduler."""
 from __future__ import annotations
 
 import logging
@@ -17,6 +17,7 @@ from fastapi.templating import Jinja2Templates
 from .config import Settings, ensure_config, load_yaml
 from .db import Database
 from .fetcher import run_once
+from .i18n import format_date, get_strings
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("positive-news")
@@ -25,8 +26,6 @@ BASE_DIR = Path(__file__).parent
 PAGE_SIZE = 30
 FRONT_PER_CATEGORY = 6
 
-MONTHS = ["január", "február", "március", "április", "május", "június", "július",
-          "augusztus", "szeptember", "október", "november", "december"]
 
 
 def create_app(settings: Settings | None = None, start_scheduler: bool = True) -> FastAPI:
@@ -38,6 +37,8 @@ def create_app(settings: Settings | None = None, start_scheduler: bool = True) -
     except Exception:
         tz = ZoneInfo("Europe/Budapest")
 
+    lang = settings.ui_language
+    t = get_strings(lang)
     scheduler = BackgroundScheduler(timezone=tz)
 
     @asynccontextmanager
@@ -48,7 +49,7 @@ def create_app(settings: Settings | None = None, start_scheduler: bool = True) -
                               id="refresh", max_instances=1, coalesce=True,
                               next_run_time=datetime.now(tz) + timedelta(seconds=5))
             scheduler.start()
-            log.info("Ütemező elindult, frissítés %d percenként", minutes)
+            log.info("Scheduler started, refreshing every %d minutes", minutes)
         yield
         if scheduler.running:
             scheduler.shutdown(wait=False)
@@ -65,14 +66,14 @@ def create_app(settings: Settings | None = None, start_scheduler: bool = True) -
     def fmt_time(value: str | None) -> str:
         dt = parse_utc(value)
         if not dt:
-            return "még nem volt"
+            return t["never"]
         local = dt.astimezone(tz)
         today = datetime.now(tz).date()
         if local.date() == today:
-            return f"ma {local:%H:%M}"
+            return f"{t['today']} {local:%H:%M}"
         if local.date() == today - timedelta(days=1):
-            return f"tegnap {local:%H:%M}"
-        return f"{MONTHS[local.month - 1]} {local.day}. {local:%H:%M}"
+            return f"{t['yesterday']} {local:%H:%M}"
+        return format_date(local, lang)
 
     templates.env.filters["hutime"] = fmt_time
 
@@ -85,6 +86,7 @@ def create_app(settings: Settings | None = None, start_scheduler: bool = True) -
         ctx.setdefault("active", None)
         return templates.TemplateResponse(request, name, {
             "site_title": settings.site_title,
+            "t": t,
             "categories": cats,
             "category_names": {c["slug"]: c.get("name", c["slug"]) for c in cats},
             "last_run": db.get_meta("last_run_at"),
@@ -100,19 +102,19 @@ def create_app(settings: Settings | None = None, start_scheduler: bool = True) -
                 sections.append({"category": c, "articles": items})
         return render(request, "index.html", top=db.latest(limit=5), sections=sections)
 
-    @app.get("/rovat/{slug}", response_class=HTMLResponse)
-    def category(request: Request, slug: str, oldal: int = 1):
+    @app.get("/category/{slug}", response_class=HTMLResponse)
+    def category(request: Request, slug: str, page: int = 1):
         cat = next((c for c in categories() if c["slug"] == slug), None)
         if not cat:
-            raise HTTPException(404, "Nincs ilyen rovat")
+            raise HTTPException(404)
         total = db.count(slug)
         pages = max(1, math.ceil(total / PAGE_SIZE))
-        page = min(max(1, oldal), pages)
+        page = min(max(1, page), pages)
         items = db.latest(slug, limit=PAGE_SIZE, offset=(page - 1) * PAGE_SIZE)
         return render(request, "category.html", category=cat, articles=items,
                       page=page, pages=pages, active=slug)
 
-    @app.get("/allapot", response_class=HTMLResponse)
+    @app.get("/status", response_class=HTMLResponse)
     def status(request: Request):
         return render(request, "status.html", feeds=db.feed_statuses(), blocked=db.blocked(100),
                       total=db.count(), interval=settings.refresh_interval_hours,

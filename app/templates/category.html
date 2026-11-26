@@ -9,12 +9,12 @@
     </div>
     {% if pages > 1 %}
       <nav class="pager">
-        {% if page > 1 %}<a href="?oldal={{ page - 1 }}">← Újabbak</a>{% endif %}
+        {% if page > 1 %}<a href="?page={{ page - 1 }}">{{ t.newer }}</a>{% endif %}
         <span>{{ page }} / {{ pages }}</span>
-        {% if page < pages %}<a href="?oldal={{ page + 1 }}">Régebbiek →</a>{% endif %}
+        {% if page < pages %}<a href="?page={{ page + 1 }}">{{ t.older }}</a>{% endif %}
       </nav>
     {% endif %}
   {% else %}
-    <p class="empty">Ebben a rovatban még nincs hír.</p>
+    <p class="empty">{{ t.empty_category }}</p>
   {% endif %}
 {% endblock %}

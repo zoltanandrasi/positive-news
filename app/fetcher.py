@@ -1,4 +1,4 @@
-"""RSS feedek letöltése, feldolgozása, szűrése és mentése."""
+"""Download, parse, filter and store RSS feeds."""
 from __future__ import annotations
 
 import calendar
@@ -22,7 +22,9 @@ USER_AGENT = "Mozilla/5.0 (compatible; PositiveNews/1.0; self-hosted RSS reader)
 _TAG_RE = re.compile(r"<[^>]+>")
 _WS_RE = re.compile(r"\s+")
 _IMG_RE = re.compile(r"<img[^>]+src=[\"']([^\"']+)[\"']", re.IGNORECASE)
-# Tipikus RSS "farok" szövegek, amiket levágunk a leadből.
+# Typical RSS trailer text that is cut from the lead.
+# Hungarian sources use "A bejegyzés ... első megjelenése" (WordPress "The post ... appeared
+# first on") and "Tovább olvasom" ("Read more"), so those patterns stay in Hungarian.
 _BOILERPLATE_RE = re.compile(
     r"(A bejegyzés .*? első megjelenése: .*$|The post .*? appeared first on .*$|"
     r"Tovább(?: olvasom)?\s*(?:»|›|&raquo;)?\s*$|\[(?:…|\.\.\.)\]\s*$)",
@@ -32,7 +34,7 @@ _BOILERPLATE_RE = re.compile(
 _run_lock = threading.Lock()
 
 
-# --- segédfüggvények ----------------------------------------------------------
+# --- helpers -----------------------------------------------------------------
 def clean_text(raw: str | None) -> str:
     if not raw:
         return ""
@@ -48,7 +50,7 @@ def make_lead(raw: str | None, max_chars: int) -> str:
     if len(text) <= max_chars:
         return text
     cut = text[:max_chars]
-    # Ha van mondatvég a második felében, ott vágunk.
+    # Cut at a sentence end if there is one in the second half.
     sentence_end = max(cut.rfind(". "), cut.rfind("! "), cut.rfind("? "))
     if sentence_end > max_chars // 2:
         return cut[: sentence_end + 1]
@@ -56,7 +58,7 @@ def make_lead(raw: str | None, max_chars: int) -> str:
 
 
 def title_key(title: str) -> str:
-    """Normalizált cím az ismétlődések kiszűréséhez."""
+    """Normalized title, used to detect duplicates."""
     return re.sub(r"[^\w]+", " ", title.lower()).strip()
 
 
@@ -115,7 +117,7 @@ def resolve_category(feed: dict, link: str, tags: list[str], auto_rules: dict, v
     return default if default in valid else next(iter(valid))
 
 
-# --- fő folyamat --------------------------------------------------------------
+# --- main flow ---------------------------------------------------------------
 def load_config(settings: Settings) -> tuple[list[dict], list[dict], dict, NewsFilter]:
     ensure_config(settings)
     feeds_cfg = load_yaml(settings.feeds_file)
@@ -129,7 +131,7 @@ def process_feed(con, db: Database, settings: Settings, feed: dict, content: byt
                  auto_rules: dict, valid: set[str], news_filter: NewsFilter) -> dict:
     parsed = feedparser.parse(content)
     if parsed.bozo and not parsed.entries:
-        raise ValueError(f"Nem értelmezhető RSS: {parsed.get('bozo_exception')}")
+        raise ValueError(f"Could not parse RSS: {parsed.get('bozo_exception')}")
 
     now = utcnow()
     oldest = now - timedelta(days=settings.retention_days)
@@ -172,9 +174,9 @@ def process_feed(con, db: Database, settings: Settings, feed: dict, content: byt
 
 
 def run_once(settings: Settings, db: Database, client: httpx.Client | None = None) -> dict:
-    """Egy teljes frissítés. Párhuzamos futás esetén a második kimarad."""
+    """Run one full refresh. If one is already running, this call is skipped."""
     if not _run_lock.acquire(blocking=False):
-        log.info("Frissítés már fut, kihagyva.")
+        log.info("Refresh already running, skipped.")
         return {"skipped": True}
     try:
         return _run(settings, db, client)
@@ -184,14 +186,14 @@ def run_once(settings: Settings, db: Database, client: httpx.Client | None = Non
 
 def _run(settings: Settings, db: Database, client: httpx.Client | None) -> dict:
     categories, feeds, auto_rules, news_filter = load_config(settings)
-    valid = [c["slug"] for c in categories if c.get("slug")] or ["egyeb"]
-    valid_set = dict.fromkeys(valid)  # sorrendtartó "halmaz"
+    valid = [c["slug"] for c in categories if c.get("slug")] or ["other"]
+    valid_set = dict.fromkeys(valid)  # insertion-ordered "set"
     own_client = client is None
     if own_client:
         client = httpx.Client(timeout=20, follow_redirects=True, headers={"User-Agent": USER_AGENT})
 
     totals = {"feeds": len(feeds), "ok": 0, "added": 0, "blocked": 0}
-    log.info("Frissítés indul: %d forrás", len(feeds))
+    log.info("Refresh started: %d feeds", len(feeds))
     try:
         with db.connect() as con:
             for feed in feeds:
@@ -207,11 +209,11 @@ def _run(settings: Settings, db: Database, client: httpx.Client | None) -> dict:
                     totals["ok"] += 1
                     totals["added"] += result["added"]
                     totals["blocked"] += result["blocked"]
-                    log.info("  %s: %d elem, %d új, %d kiszűrve", status["name"],
+                    log.info("  %s: %d items, %d new, %d blocked", status["name"],
                              result["items"], result["added"], result["blocked"])
-                except Exception as exc:  # egy hibás forrás ne állítsa meg a többit
+                except Exception as exc:  # one broken feed must not stop the others
                     status["error"] = f"{type(exc).__name__}: {exc}"[:500]
-                    log.warning("  %s: HIBA %s", status["name"], status["error"])
+                    log.warning("  %s: ERROR %s", status["name"], status["error"])
                 db.save_feed_status(con, status)
                 con.commit()
 
@@ -226,13 +228,13 @@ def _run(settings: Settings, db: Database, client: httpx.Client | None) -> dict:
             client.close()
 
     purged = db.purge_older_than(settings.retention_days)
-    log.info("Frissítés kész: %d/%d forrás rendben, %d új hír, %d kiszűrve, %d régi törölve",
+    log.info("Refresh done: %d/%d feeds OK, %d new articles, %d blocked, %d old deleted",
              totals["ok"], totals["feeds"], totals["added"], totals["blocked"], purged)
     totals["purged"] = purged
     return totals
 
 
-if __name__ == "__main__":  # kézi futtatás: python -m app.fetcher
+if __name__ == "__main__":  # manual run: python -m app.fetcher
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     s = Settings()
     print(run_once(s, Database(s.db_path)))

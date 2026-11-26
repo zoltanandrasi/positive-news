@@ -1,4 +1,4 @@
-"""SQLite tárolás."""
+"""SQLite storage."""
 from __future__ import annotations
 
 import sqlite3
@@ -68,7 +68,7 @@ class Database:
         finally:
             con.close()
 
-    # --- írás ---------------------------------------------------------------
+    # --- writes --------------------------------------------------------------
     def has_link_or_title(self, con, link: str, title_key: str) -> bool:
         row = con.execute(
             "SELECT 1 FROM articles WHERE link = ? OR title_key = ? LIMIT 1", (link, title_key)
@@ -106,7 +106,7 @@ class Database:
             cur = con.execute("DELETE FROM articles WHERE published_at < ?", (cutoff,))
             return cur.rowcount
 
-    # --- olvasás ------------------------------------------------------------
+    # --- reads ---------------------------------------------------------------
     def latest(self, category: str | None = None, limit: int = 30, offset: int = 0) -> list[sqlite3.Row]:
         sql = "SELECT * FROM articles WHERE blocked_by IS NULL"
         args: list = []
