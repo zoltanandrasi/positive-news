@@ -40,15 +40,13 @@ feeds:
     url: https://444.hu/feed
     category: auto
     default_category: domestic
+  - name: 24.hu
+    url: https://24.hu/feed/
+    category: auto
+    default_category: domestic
 
   # --- Single-section feeds ---
-  - { name: 24.hu Belföld,   url: "https://24.hu/belfold/feed/",     category: domestic }
-  - { name: 24.hu Külföld,   url: "https://24.hu/kulfold/feed/",     category: world }
-  - { name: 24.hu Kultúra,   url: "https://24.hu/kultura/feed/",     category: culture }
-  - { name: 24.hu Sport,     url: "https://24.hu/sport/feed/",       category: sport }
-  - { name: 24.hu Tudomány,  url: "https://24.hu/tudomany/feed/",    category: science }
-  - { name: 24.hu Életmód,   url: "https://24.hu/elet-stilus/feed/", category: lifestyle }
-  - { name: Nemzeti Sport,   url: "https://www.nemzetisport.hu/rss", category: sport }
+  - { name: Nemzeti Sport,   url: "https://www.nemzetisport.hu/publicapi/hu/rss/nso/articles", category: sport }
   - { name: Qubit,           url: "https://qubit.hu/feed",           category: science }
   - { name: Portfolio,       url: "https://www.portfolio.hu/rss/all.xml", category: business }
   - { name: Player,          url: "https://player.hu/feed/",         category: entertainment }
