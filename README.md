@@ -33,7 +33,11 @@ is to make the image public (the code contains no secrets):
 
 ### 2. Create the project on the NAS
 
-1. **File Station**: create a folder, e.g. `docker/positive-news`.
+1. **File Station**: create a folder, e.g. `docker/positive-news`, and inside it two
+   empty subfolders: `config` and `data`. Synology does not create missing
+   bind-mount folders, so without them the project fails to start with
+   "Bind mount failed: ... does not exist". Leave both empty: the default
+   `feeds.yaml` and `filters.yaml` are copied into `config` on first start.
 2. **Container Manager → Project → Create**
    - Project name: `positive-news`
    - Path: the folder above

@@ -1,5 +1,7 @@
 # Synology Container Manager > Project > Create: paste this file.
-# The "data" and "config" folders are created inside the project folder.
+# Before creating the project, create two empty subfolders in the project folder:
+# "config" and "data". Synology does not create them automatically.
+# The default feeds.yaml and filters.yaml are copied into "config" on first start.
 services:
   positive-news:
     image: ghcr.io/zoltanandrasi/positive-news:latest
