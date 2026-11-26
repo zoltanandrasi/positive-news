@@ -1,0 +1,109 @@
+# Negatív hírek szűrése.
+# Egy hír kimarad, ha a címében vagy a leadjében szerepel valamelyik tiltó kifejezés.
+# Kis- és nagybetű nem számít. A módosítás a következő frissítéstől él
+# (a már letöltött hírekre nem hat visszamenőleg).
+#
+# A "/allapot" oldalon látod a kiszűrt híreket és az okukat, így könnyű finomhangolni.
+
+# Szótövek: a szó BÁRMELY részén illeszkednek.
+# Pl. "halál" kiszűri a "halálos", "halálra", "halálát" szavakat is.
+block_stems:
+  # halál, baleset, sérülés
+  - halál
+  - halott
+  - meghalt
+  - elhunyt
+  - életét vesztette
+  - holttest
+  - baleset
+  - karambol
+  - tragédi
+  - tragikus
+  - megsérült
+  - súlyosan sérült
+  - mentők
+  - öngyilkos
+  - eltűnt
+  # erőszak, bűnözés
+  - gyilkos
+  - meggyilkol
+  - lövöldöz
+  - késel
+  - erőszak
+  - bántalmaz
+  - verekedés
+  - rablás
+  - kirabol
+  - betörő
+  - bűncselekmény
+  - bűnöző
+  - letartóztat
+  - őrizetbe
+  - börtön
+  - vádemel
+  - pedofil
+  - csaló
+  - csalás
+  - korrupci
+  - botrány
+  # háború, terror
+  - háború
+  - fegyveres
+  - terror
+  - merénylet
+  - robbanás
+  - bombáz
+  - rakétatámadás
+  - légicsapás
+  - ostrom
+  - túszejt
+  - túszok
+  # katasztrófa, betegség
+  - katasztróf
+  - földrengés
+  - árvíz
+  - tűzvész
+  - leégett
+  - lángokban
+  - járvány
+  - rákos
+  - daganat
+  # válság, gazdasági rossz hírek
+  - csőd
+  - válság
+  - elbocsát
+  - leépítés
+  - sztrájk
+  - tüntetés
+  # Opcionális: politikai hírek kiszűréséhez vedd ki a # jelet az alábbi sorok elől
+  # - kormány
+  # - miniszter
+  # - parlament
+  # - ellenzék
+  # - fidesz
+  # - választás
+
+# Teljes szavak: csak önálló szóként illeszkednek (pl. "öl" nem szűri ki a "völgy"-et).
+block_words:
+  - öl
+  - ölt
+  - megölt
+  - lelőtték
+  - rák
+  - per
+  - túsz
+  - túszt
+
+# Kivételek: ha a hír ezek valamelyikét tartalmazza, a tiltó szavak nem számítanak.
+# Pl. "halálosan jó", "katasztrófavédelem gyakorlat".
+allow_phrases:
+  - halálosan jó
+  - életmentő
+  - megmentett
+  - túlélte
+
+# Ha egy hír címe ezek valamelyikével kezdődik, kimarad (pl. hirdetések, percről percre tudósítások).
+block_title_prefixes:
+  - "Szponzorált"
+  - "PR-cikk"
+  - "Hirdetés"

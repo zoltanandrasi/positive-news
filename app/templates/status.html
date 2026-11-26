@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Állapot · {{ site_title }}{% endblock %}
+{% block content %}
+  <h1 class="page-title">Állapot</h1>
+  <p>Megjelenő hírek: <strong>{{ total }}</strong> ·
+     Frissítés: <strong>{{ interval | round(2) }} óránként</strong> ·
+     Megőrzés: <strong>{{ retention }} nap</strong> ·
+     Utolsó frissítés: <strong>{{ last_run | hutime }}</strong></p>
+
+  <h2 class="section-title">Források</h2>
+  {% if feeds %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Forrás</th><th>Állapot</th><th>Elemek</th><th>Új</th><th>Kiszűrve</th><th>Utoljára</th></tr></thead>
+    <tbody>
+    {% for f in feeds %}
+      <tr>
+        <td><strong>{{ f.name }}</strong><br><small>{{ f.url }}</small></td>
+        <td>{% if f.ok %}<span class="ok">rendben</span>{% else %}<span class="err">hiba</span><br><small>{{ f.error }}</small>{% endif %}</td>
+        <td>{{ f.items }}</td><td>{{ f.added }}</td><td>{{ f.blocked }}</td>
+        <td>{{ f.last_run_at | hutime }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+    <p>Még nem volt frissítés.</p>
+  {% endif %}
+
+  <h2 class="section-title">Legutóbb kiszűrt hírek</h2>
+  <p><small>Ha egy ártalmatlan hír rossz okból esett ki, vedd ki vagy pontosítsd a szót a <code>config/filters.yaml</code> fájlban.</small></p>
+  {% if blocked %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Cím</th><th>Ok</th><th>Forrás</th></tr></thead>
+    <tbody>
+    {% for a in blocked %}
+      <tr>
+        <td><a href="{{ a.link }}" target="_blank" rel="noopener noreferrer">{{ a.title }}</a></td>
+        <td>{{ a.blocked_by }}</td>
+        <td>{{ a.source }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+    <p>Nincs kiszűrt hír.</p>
+  {% endif %}
+{% endblock %}

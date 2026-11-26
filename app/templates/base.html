@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ site_title }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="logo" href="/">{{ site_title }}</a>
+      <span class="tagline">Pozitív és semleges hírek, egy helyen</span>
+    </div>
+    <nav class="wrap nav">
+      <a href="/" class="{% if active is none and request.url.path == '/' %}active{% endif %}">Címlap</a>
+      {% for c in categories %}
+        <a href="/rovat/{{ c.slug }}" class="{% if active == c.slug %}active{% endif %}">{{ c.name }}</a>
+      {% endfor %}
+    </nav>
+  </header>
+
+  <main class="wrap">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="wrap site-footer">
+    Utolsó frissítés: {{ last_run | hutime }} ·
+    A címek és leadek a források RSS-csatornáiból származnak, a teljes cikk a forrásoldalon olvasható. ·
+    <a href="/allapot">Állapot</a>
+  </footer>
+</body>
+</html>

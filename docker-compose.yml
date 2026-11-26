@@ -1,0 +1,18 @@
+# Synology Container Manager > Projekt > Létrehozás: ezt a fájlt illeszd be.
+# A "data" és "config" mappák a projekt mappáján belül jönnek létre.
+services:
+  positive-news:
+    image: ghcr.io/zoltanandrasi/positive-news:latest
+    container_name: positive-news
+    restart: unless-stopped
+    ports:
+      - "8080:8000"          # a bal oldali szám a NAS portja, szabadon módosítható
+    environment:
+      REFRESH_INTERVAL_HOURS: "2"   # frissítés gyakorisága órában (pl. 0.5 = félóránként)
+      RETENTION_DAYS: "14"          # ennyi napnál régebbi hírek törlődnek
+      LEAD_MAX_CHARS: "320"         # a lead maximális hossza
+      SITE_TITLE: "Jó Hírek"        # az oldal neve
+      TZ: "Europe/Budapest"
+    volumes:
+      - ./data:/data          # adatbázis
+      - ./config:/config      # feeds.yaml és filters.yaml (első induláskor létrejönnek)

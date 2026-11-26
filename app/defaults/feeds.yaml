@@ -1,0 +1,65 @@
+# Hírforrások és rovatok.
+# A fájl a NAS-on a projekt "config" mappájában van, szabadon szerkeszthető.
+# Módosítás után indítsd újra a konténert (Container Manager > Projekt > Újraindítás),
+# vagy várd meg a következő frissítést: a fájlt minden frissítéskor újraolvassa.
+#
+# A "/allapot" oldalon látod, melyik forrás működik és hány hírt hozott.
+
+# Rovatok a menü sorrendjében. A "slug" a webcímben jelenik meg (pl. /rovat/sport).
+categories:
+  - { slug: belfold,    name: Belföld }
+  - { slug: kulfold,    name: Külföld }
+  - { slug: sport,      name: Sport }
+  - { slug: kultura,    name: Kultúra }
+  - { slug: szorakozas, name: Szórakozás }
+  - { slug: tudomany,   name: Tudomány és tech }
+  - { slug: gazdasag,   name: Gazdaság }
+  - { slug: eletmod,    name: Életmód }
+
+# Hírforrások.
+#   category: egy rovat slug-ja, ha a feed csak egy rovat híreit tartalmazza,
+#             vagy "auto", ha vegyes (ilyenkor az "auto_rules" dönt).
+#   default_category: "auto" esetén ide kerül a hír, ha egyik szabály sem illik rá.
+#   enabled: false-szal ideiglenesen kikapcsolható.
+feeds:
+  # --- Vegyes feedek, rovat a cikk webcíméből / RSS címkéiből ---
+  - name: Telex
+    url: https://telex.hu/rss
+    category: auto
+    default_category: belfold
+  - name: HVG
+    url: https://hvg.hu/rss
+    category: auto
+    default_category: belfold
+  - name: Index
+    url: https://index.hu/24ora/rss/
+    category: auto
+    default_category: belfold
+  - name: 444
+    url: https://444.hu/feed
+    category: auto
+    default_category: belfold
+
+  # --- Rovatonkénti feedek ---
+  - { name: 24.hu Belföld,    url: "https://24.hu/belfold/feed/",     category: belfold }
+  - { name: 24.hu Külföld,    url: "https://24.hu/kulfold/feed/",     category: kulfold }
+  - { name: 24.hu Kultúra,    url: "https://24.hu/kultura/feed/",     category: kultura }
+  - { name: 24.hu Sport,      url: "https://24.hu/sport/feed/",       category: sport }
+  - { name: 24.hu Tudomány,   url: "https://24.hu/tudomany/feed/",    category: tudomany }
+  - { name: 24.hu Élet-stílus, url: "https://24.hu/elet-stilus/feed/", category: eletmod }
+  - { name: Nemzeti Sport,    url: "https://www.nemzetisport.hu/rss", category: sport }
+  - { name: Qubit,            url: "https://qubit.hu/feed",           category: tudomany }
+  - { name: Portfolio,        url: "https://www.portfolio.hu/rss/all.xml", category: gazdasag }
+  - { name: Player,           url: "https://player.hu/feed/",         category: szorakozas }
+
+# "auto" feedeknél: ha a cikk webcímében vagy RSS-címkéi között szerepel
+# valamelyik kifejezés, abba a rovatba kerül. Fentről lefelé az első találat nyer.
+auto_rules:
+  sport:      { url: ["/sport/", "/foci/", "/futball/", "/olimpia/"], tags: [sport, foci, labdarúgás, olimpia, kézilabda, forma-1] }
+  kultura:    { url: ["/kult/", "/kultura/", "/kultur/", "/zene/", "/film/", "/konyv/"], tags: [kultúra, zene, film, könyv, színház, kiállítás, irodalom] }
+  szorakozas: { url: ["/after/", "/szorakozas/", "/celeb/", "/media/"], tags: [szórakozás, sztár, celeb, tévé, sorozat] }
+  tudomany:   { url: ["/techtud/", "/tudomany/", "/tech/", "/tudomany-technika/"], tags: [tudomány, technológia, tech, űrkutatás, informatika] }
+  gazdasag:   { url: ["/gazdasag/", "/kkv/", "/penz/", "/kkv-ugyek/"], tags: [gazdaság, pénz, vállalkozás, tőzsde] }
+  eletmod:    { url: ["/eletmod/", "/elet/", "/elet-stilus/", "/gasztro/", "/utazas/"], tags: [életmód, gasztró, utazás, egészség, család] }
+  kulfold:    { url: ["/kulfold/", "/vilag/"], tags: [külföld, világ, nemzetközi] }
+  belfold:    { url: ["/belfold/", "/itthon/"], tags: [belföld, itthon] }

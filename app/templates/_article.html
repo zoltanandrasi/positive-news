@@ -1,0 +1,17 @@
+{% macro card(a, category_names, show_category=false, big=false) %}
+<article class="card{% if big %} big{% endif %}">
+  {% if a.image_url %}
+    <a href="{{ a.link }}" target="_blank" rel="noopener noreferrer" class="thumb">
+      <img src="{{ a.image_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">
+    </a>
+  {% endif %}
+  <div class="body">
+    <h3><a href="{{ a.link }}" target="_blank" rel="noopener noreferrer">{{ a.title }}</a></h3>
+    {% if a.lead %}<p class="lead">{{ a.lead }}</p>{% endif %}
+    <p class="meta">
+      {% if show_category %}<a class="tag" href="/rovat/{{ a.category }}">{{ category_names.get(a.category, a.category) }}</a>{% endif %}
+      <span>{{ a.source }}</span> · <time>{{ a.published_at | hutime }}</time>
+    </p>
+  </div>
+</article>
+{% endmacro %}

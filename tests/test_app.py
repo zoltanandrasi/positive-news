@@ -1,0 +1,128 @@
+from datetime import datetime, timezone
+from pathlib import Path
+
+import httpx
+import pytest
+from fastapi.testclient import TestClient
+
+from app import fetcher
+from app.config import Settings
+from app.db import Database
+from app.filters import NewsFilter
+from app.main import create_app
+
+FIXTURE = (Path(__file__).parent / "fixtures" / "sample.xml").read_bytes()
+
+
+@pytest.fixture
+def settings(tmp_path, monkeypatch):
+    monkeypatch.setenv("DATA_DIR", str(tmp_path / "data"))
+    monkeypatch.setenv("CONFIG_DIR", str(tmp_path / "config"))
+    monkeypatch.setenv("RETENTION_DAYS", "100000")
+    s = Settings()
+    (tmp_path / "config").mkdir()
+    (tmp_path / "config" / "feeds.yaml").write_text(
+        """
+categories:
+  - { slug: belfold, name: Belföld }
+  - { slug: sport, name: Sport }
+  - { slug: kultura, name: Kultúra }
+feeds:
+  - { name: Teszt, url: "https://example.hu/rss", category: auto, default_category: belfold }
+  - { name: Rossz, url: "https://broken.example/rss", category: sport }
+auto_rules:
+  sport: { url: ["/sport/"], tags: [sport] }
+  kultura: { url: ["/kult/"], tags: [kultúra] }
+""",
+        encoding="utf-8",
+    )
+    return s
+
+
+def mock_client():
+    def handler(request: httpx.Request):
+        if request.url.host == "example.hu":
+            return httpx.Response(200, content=FIXTURE)
+        return httpx.Response(500)
+    return httpx.Client(transport=httpx.MockTransport(handler))
+
+
+def test_filter_stems_words_and_exceptions():
+    f = NewsFilter.from_config({
+        "block_stems": ["halál", "baleset"],
+        "block_words": ["öl"],
+        "allow_phrases": ["halálosan jó"],
+        "block_title_prefixes": ["Szponzorált"],
+    })
+    assert f.check("Halálos baleset", "") == "tiltott szótő: halál"
+    assert f.check("Halálosan jó a új lemez", "") is None
+    assert f.check("Szép a völgy", "") is None          # "öl" csak önálló szóként
+    assert f.check("Valaki öl", "").startswith("tiltott szó")
+    assert f.check("Szponzorált: nyaralás", "").startswith("cím eleje")
+
+
+def test_make_lead_cleans_and_truncates():
+    assert fetcher.make_lead("<p>Szia &amp; helló</p>", 100) == "Szia & helló"
+    long = "Első mondat itt van. " + "szó " * 100
+    assert fetcher.make_lead(long, 60).endswith("…")
+    assert fetcher.make_lead("A szöveg. A bejegyzés X első megjelenése: Y.", 100) == "A szöveg."
+
+
+def test_run_once_stores_filters_and_categorizes(settings):
+    db = Database(settings.db_path)
+    result = fetcher.run_once(settings, db, client=mock_client())
+    assert result["ok"] == 1 and result["feeds"] == 2
+    assert result["added"] == 3 and result["blocked"] == 1
+
+    visible = {a["title"]: a for a in db.latest(limit=50)}
+    assert set(visible) == {
+        "Aranyérmet nyert a magyar kajakos az Európa-bajnokságon",
+        "Új kiállítás nyílik a Nemzeti Galériában",
+        "Önkéntesek ültettek fát a városligetben",
+    }
+    kajak = visible["Aranyérmet nyert a magyar kajakos az Európa-bajnokságon"]
+    assert kajak["category"] == "sport"
+    assert kajak["image_url"] == "https://example.hu/img/kajak.jpg"
+    assert "&" in kajak["lead"] and "<" not in kajak["lead"]
+    kiall = visible["Új kiállítás nyílik a Nemzeti Galériában"]
+    assert kiall["category"] == "kultura"
+    assert kiall["lead"] == "A tárlat a magyar impresszionizmust mutatja be."
+    assert kiall["image_url"] == "https://example.hu/img/kiallitas.jpg"
+    assert visible["Önkéntesek ültettek fát a városligetben"]["category"] == "belfold"
+
+    statuses = {s["name"]: s for s in db.feed_statuses()}
+    assert statuses["Teszt"]["ok"] == 1
+    assert statuses["Rossz"]["ok"] == 0 and "500" in statuses["Rossz"]["error"]
+
+    # második futás nem duplikál
+    again = fetcher.run_once(settings, db, client=mock_client())
+    assert again["added"] == 0 and again["blocked"] == 0
+
+
+def test_web_pages(settings):
+    db = Database(settings.db_path)
+    fetcher.run_once(settings, db, client=mock_client())
+    app = create_app(settings, start_scheduler=False)
+    with TestClient(app) as client:
+        r = client.get("/")
+        assert r.status_code == 200
+        assert "Aranyérmet nyert" in r.text and "Halálos baleset" not in r.text
+        r = client.get("/rovat/sport")
+        assert r.status_code == 200 and "kajakos" in r.text and "kiállítás" not in r.text
+        assert client.get("/rovat/nincs").status_code == 404
+        r = client.get("/allapot")
+        assert r.status_code == 200 and "Halálos baleset" in r.text and "tiltott szótő: halál" in r.text
+        assert client.get("/healthz").text == "ok"
+        assert client.get("/static/style.css").status_code == 200
+
+
+def test_default_config_is_created(tmp_path, monkeypatch):
+    monkeypatch.setenv("DATA_DIR", str(tmp_path / "d"))
+    monkeypatch.setenv("CONFIG_DIR", str(tmp_path / "c"))
+    s = Settings()
+    app = create_app(s, start_scheduler=False)
+    assert (tmp_path / "c" / "feeds.yaml").exists()
+    assert (tmp_path / "c" / "filters.yaml").exists()
+    with TestClient(app) as client:
+        r = client.get("/")
+        assert r.status_code == 200 and "Még nincsenek hírek" in r.text

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+<channel>
+  <title>Teszt Hírek</title>
+  <item>
+    <title>Aranyérmet nyert a magyar kajakos az Európa-bajnokságon</title>
+    <link>https://example.hu/sport/2026/11/26/kajak-arany</link>
+    <description><![CDATA[<p>Remek versenyt futott a magyar páros, és &amp; magabiztosan nyert.</p> <img src="https://example.hu/img/kajak.jpg">]]></description>
+    <pubDate>Wed, 26 Nov 2026 10:00:00 +0100</pubDate>
+    <category>Sport</category>
+  </item>
+  <item>
+    <title>Új kiállítás nyílik a Nemzeti Galériában</title>
+    <link>https://example.hu/kult/2026/11/26/kiallitas</link>
+    <description>A tárlat a magyar impresszionizmust mutatja be. A bejegyzés Új kiállítás első megjelenése: Teszt.</description>
+    <pubDate>Wed, 26 Nov 2026 09:00:00 +0100</pubDate>
+    <media:thumbnail url="https://example.hu/img/kiallitas.jpg"/>
+  </item>
+  <item>
+    <title>Halálos baleset történt az M1-esen</title>
+    <link>https://example.hu/belfold/2026/11/26/baleset</link>
+    <description>Két autó ütközött.</description>
+    <pubDate>Wed, 26 Nov 2026 08:00:00 +0100</pubDate>
+  </item>
+  <item>
+    <title>Önkéntesek ültettek fát a városligetben</title>
+    <link>https://example.hu/2026/11/26/faultetes</link>
+    <description>Több száz ember vett részt az akcióban.</description>
+    <pubDate>Wed, 26 Nov 2026 07:00:00 +0100</pubDate>
+  </item>
+  <item>
+    <title>Önkéntesek ültettek fát a Városligetben!</title>
+    <link>https://example.hu/2026/11/26/faultetes-masolat</link>
+    <description>Ugyanaz a hír más linken.</description>
+    <pubDate>Wed, 26 Nov 2026 07:05:00 +0100</pubDate>
+  </item>
+</channel>
+</rss>
