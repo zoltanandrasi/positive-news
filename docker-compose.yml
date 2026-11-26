@@ -7,6 +7,9 @@ services:
     image: ghcr.io/zoltanandrasi/positive-news:latest
     container_name: positive-news
     restart: unless-stopped
+    dns:                     # public DNS servers: some Synology setups give containers
+      - 1.1.1.1              # no working DNS, so every feed fails with
+      - 8.8.8.8              # "Temporary failure in name resolution"
     ports:
       - "8080:8000"          # the left number is the NAS port; change it if 8080 is taken
     environment:
