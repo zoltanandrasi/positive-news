@@ -3,7 +3,7 @@
 {% block content %}
   <h1 class="page-title">{{ t.status }}</h1>
   <p>{{ t.status_visible }}: <strong>{{ total }}</strong> ·
-     {{ t.status_refresh }}: <strong>{{ t.status_every_hours.format(n=interval | round(2)) }}</strong> ·
+     {{ t.status_refresh }}: <strong>{{ t.status_every_hours.format(n="%g" | format(interval)) }}</strong> ·
      {{ t.status_retention }}: <strong>{{ t.status_days.format(n=retention) }}</strong> ·
      {{ t.footer_last_refresh }}: <strong>{{ last_run | hutime }}</strong></p>
 

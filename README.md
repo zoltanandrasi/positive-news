@@ -33,7 +33,11 @@ is to make the image public (the code contains no secrets):
 
 ### 2. Create the project on the NAS
 
-1. **File Station**: create a folder, e.g. `docker/positive-news`.
+1. **File Station**: create a folder, e.g. `docker/positive-news`, and inside it two
+   empty subfolders: `config` and `data`. Synology does not create missing
+   bind-mount folders, so without them the project fails to start with
+   "Bind mount failed: ... does not exist". Leave both empty: the default
+   `feeds.yaml` and `filters.yaml` are copied into `config` on first start.
 2. **Container Manager → Project → Create**
    - Project name: `positive-news`
    - Path: the folder above
@@ -44,12 +48,23 @@ is to make the image public (the code contains no secrets):
 
 The first refresh runs a few seconds after startup.
 
+If every feed on the `/status` page shows `Temporary failure in name resolution`,
+the container cannot resolve host names. The compose file already sets public DNS
+servers (`dns:` with 1.1.1.1 and 8.8.8.8) to avoid this. If it still happens,
+check that the DSM firewall (Control Panel → Security → Firewall) allows traffic
+from the Docker networks, and that the NAS itself has a working DNS server under
+Control Panel → Network → General.
+
 ### 3. Updating to a new version
 
 Container Manager → **Image** tab: if the `positive-news` image shows an
 "Update available" badge, click it and the container restarts on the new
 version. If there is no badge: Project → `positive-news` → **Action → Stop**,
 then **Action → Build** (pulls the `latest` image again), then **Start**.
+
+After changing `docker-compose.yml` (for example adding `dns:`), use
+Project → `positive-news` → **Action → Stop**, edit the YAML in the project's
+**YAML Configurations** tab, save, then **Action → Build** so the change takes effect.
 
 ## Settings
 

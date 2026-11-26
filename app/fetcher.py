@@ -130,8 +130,10 @@ def load_config(settings: Settings) -> tuple[list[dict], list[dict], dict, NewsF
 def process_feed(con, db: Database, settings: Settings, feed: dict, content: bytes,
                  auto_rules: dict, valid: set[str], news_filter: NewsFilter) -> dict:
     parsed = feedparser.parse(content)
-    if parsed.bozo and not parsed.entries:
-        raise ValueError(f"Could not parse RSS: {parsed.get('bozo_exception')}")
+    if not parsed.entries:
+        if parsed.bozo:
+            raise ValueError(f"Could not parse RSS: {parsed.get('bozo_exception')}")
+        raise ValueError("The feed has no articles (wrong URL, or not an article feed)")
 
     now = utcnow()
     oldest = now - timedelta(days=settings.retention_days)

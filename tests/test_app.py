@@ -43,6 +43,8 @@ def mock_client():
     def handler(request: httpx.Request):
         if request.url.host == "example.hu":
             return httpx.Response(200, content=FIXTURE)
+        if request.url.host == "empty.example":
+            return httpx.Response(200, content=b'<?xml version="1.0"?><rss version="2.0"><channel><title>x</title></channel></rss>')
         return httpx.Response(500)
     return httpx.Client(transport=httpx.MockTransport(handler))
 
@@ -138,3 +140,13 @@ def test_english_ui(settings, monkeypatch):
         r = client.get("/")
         assert 'lang="en"' in r.text and "Latest" in r.text
         assert "Aranyérmet nyert" in r.text  # the news itself stays Hungarian
+
+
+def test_empty_feed_is_reported_as_error(settings):
+    cfg = settings.feeds_file.read_text(encoding="utf-8")
+    settings.feeds_file.write_text(cfg.replace(
+        "auto_rules:", '  - { name: Ures, url: "https://empty.example/rss", category: sport }\nauto_rules:'), encoding="utf-8")
+    db = Database(settings.db_path)
+    fetcher.run_once(settings, db, client=mock_client())
+    status = {s["name"]: s for s in db.feed_statuses()}["Ures"]
+    assert status["ok"] == 0 and "no articles" in status["error"]
