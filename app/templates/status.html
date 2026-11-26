@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{{ t.status }} · {{ site_title }}{% endblock %}
+{% block content %}
+  <h1 class="page-title">{{ t.status }}</h1>
+  <p>{{ t.status_visible }}: <strong>{{ total }}</strong> ·
+     {{ t.status_refresh }}: <strong>{{ t.status_every_hours.format(n=interval | round(2)) }}</strong> ·
+     {{ t.status_retention }}: <strong>{{ t.status_days.format(n=retention) }}</strong> ·
+     {{ t.footer_last_refresh }}: <strong>{{ last_run | hutime }}</strong></p>
+
+  <h2 class="section-title">{{ t.status_feeds }}</h2>
+  {% if feeds %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>{{ t.status_col_feed }}</th><th>{{ t.status_col_state }}</th><th>{{ t.status_col_items }}</th><th>{{ t.status_col_new }}</th><th>{{ t.status_col_blocked }}</th><th>{{ t.status_col_last_run }}</th></tr></thead>
+    <tbody>
+    {% for f in feeds %}
+      <tr>
+        <td><strong>{{ f.name }}</strong><br><small>{{ f.url }}</small></td>
+        <td>{% if f.ok %}<span class="ok">{{ t.status_ok }}</span>{% else %}<span class="err">{{ t.status_error }}</span><br><small>{{ f.error }}</small>{% endif %}</td>
+        <td>{{ f.items }}</td><td>{{ f.added }}</td><td>{{ f.blocked }}</td>
+        <td>{{ f.last_run_at | hutime }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+    <p>{{ t.status_no_run }}</p>
+  {% endif %}
+
+  <h2 class="section-title">{{ t.status_blocked_title }}</h2>
+  <p><small>{{ t.status_blocked_hint }}</small></p>
+  {% if blocked %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>{{ t.status_col_title }}</th><th>{{ t.status_col_reason }}</th><th>{{ t.status_col_feed }}</th></tr></thead>
+    <tbody>
+    {% for a in blocked %}
+      <tr>
+        <td><a href="{{ a.link }}" target="_blank" rel="noopener noreferrer">{{ a.title }}</a></td>
+        <td>{{ a.blocked_by }}</td>
+        <td>{{ a.source }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+    <p>{{ t.status_no_blocked }}</p>
+  {% endif %}
+{% endblock %}

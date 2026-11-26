@@ -1,0 +1,67 @@
+# News sources and categories.
+# On the NAS this file lives in the project's "config" folder and can be edited freely.
+# It is re-read on every refresh, so changes apply from the next refresh
+# (or restart the project in Container Manager to apply them right away).
+#
+# The "/status" page shows which feeds work and how many articles each one returned.
+
+# Categories in menu order. The "slug" appears in the URL (e.g. /category/sport),
+# the "name" is the label shown on the website.
+categories:
+  - { slug: domestic,      name: Belföld }           # Domestic
+  - { slug: world,         name: Külföld }           # World
+  - { slug: sport,         name: Sport }             # Sport
+  - { slug: culture,       name: Kultúra }           # Culture
+  - { slug: entertainment, name: Szórakozás }        # Entertainment
+  - { slug: science,       name: Tudomány és tech }  # Science & Tech
+  - { slug: business,      name: Gazdaság }          # Business
+  - { slug: lifestyle,     name: Életmód }           # Lifestyle
+
+# Feeds. "name" is shown on the website as the source of each article.
+#   category: a category slug if the feed only carries one section,
+#             or "auto" for mixed feeds (then "auto_rules" decide).
+#   default_category: with "auto", used when no rule matches.
+#   enabled: set to false to switch a feed off temporarily.
+feeds:
+  # --- Mixed feeds: category taken from the article URL / RSS tags ---
+  - name: Telex
+    url: https://telex.hu/rss
+    category: auto
+    default_category: domestic
+  - name: HVG
+    url: https://hvg.hu/rss
+    category: auto
+    default_category: domestic
+  - name: Index
+    url: https://index.hu/24ora/rss/
+    category: auto
+    default_category: domestic
+  - name: 444
+    url: https://444.hu/feed
+    category: auto
+    default_category: domestic
+
+  # --- Single-section feeds ---
+  - { name: 24.hu Belföld,   url: "https://24.hu/belfold/feed/",     category: domestic }
+  - { name: 24.hu Külföld,   url: "https://24.hu/kulfold/feed/",     category: world }
+  - { name: 24.hu Kultúra,   url: "https://24.hu/kultura/feed/",     category: culture }
+  - { name: 24.hu Sport,     url: "https://24.hu/sport/feed/",       category: sport }
+  - { name: 24.hu Tudomány,  url: "https://24.hu/tudomany/feed/",    category: science }
+  - { name: 24.hu Életmód,   url: "https://24.hu/elet-stilus/feed/", category: lifestyle }
+  - { name: Nemzeti Sport,   url: "https://www.nemzetisport.hu/rss", category: sport }
+  - { name: Qubit,           url: "https://qubit.hu/feed",           category: science }
+  - { name: Portfolio,       url: "https://www.portfolio.hu/rss/all.xml", category: business }
+  - { name: Player,          url: "https://player.hu/feed/",         category: entertainment }
+
+# For "auto" feeds: if the article URL path or one of its RSS tags contains any of
+# these terms, the article goes to that category. The first match from the top wins.
+# The terms are in Hungarian because they match the Hungarian sites' URLs and tags.
+auto_rules:
+  sport:         { url: ["/sport/", "/foci/", "/futball/", "/olimpia/"], tags: [sport, foci, labdarúgás, olimpia, kézilabda, forma-1] }
+  culture:       { url: ["/kult/", "/kultura/", "/kultur/", "/zene/", "/film/", "/konyv/"], tags: [kultúra, zene, film, könyv, színház, kiállítás, irodalom] }
+  entertainment: { url: ["/after/", "/szorakozas/", "/celeb/", "/media/"], tags: [szórakozás, sztár, celeb, tévé, sorozat] }
+  science:       { url: ["/techtud/", "/tudomany/", "/tech/", "/tudomany-technika/"], tags: [tudomány, technológia, tech, űrkutatás, informatika] }
+  business:      { url: ["/gazdasag/", "/kkv/", "/penz/", "/kkv-ugyek/"], tags: [gazdaság, pénz, vállalkozás, tőzsde] }
+  lifestyle:     { url: ["/eletmod/", "/elet/", "/elet-stilus/", "/gasztro/", "/utazas/"], tags: [életmód, gasztró, utazás, egészség, család] }
+  world:         { url: ["/kulfold/", "/vilag/"], tags: [külföld, világ, nemzetközi] }
+  domestic:      { url: ["/belfold/", "/itthon/"], tags: [belföld, itthon] }

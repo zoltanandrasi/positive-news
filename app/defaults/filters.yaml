@@ -1,0 +1,110 @@
+# Negative news filter.
+# An article is hidden if its title or lead contains any blocked term.
+# Matching is case-insensitive. Changes apply from the next refresh
+# (articles already stored are not re-checked).
+#
+# The terms are in Hungarian because the articles are Hungarian; the comment after
+# each term gives its English meaning.
+# The "/status" page lists blocked articles with the reason, which makes tuning easy.
+
+# Stems: match ANYWHERE inside a word.
+# E.g. "halál" (death) also blocks "halálos", "halálra", "halálát".
+block_stems:
+  # death, accidents, injuries
+  - halál  # death
+  - halott  # dead
+  - meghalt  # died
+  - elhunyt  # passed away
+  - életét vesztette  # lost their life
+  - holttest  # corpse
+  - baleset  # accident
+  - karambol  # crash
+  - tragédi  # tragedy
+  - tragikus  # tragic
+  - megsérült  # was injured
+  - súlyosan sérült  # seriously injured
+  - mentők  # ambulance
+  - öngyilkos  # suicide
+  - eltűnt  # missing
+  # violence, crime
+  - gyilkos  # murder(er)
+  - meggyilkol  # murdered
+  - lövöldöz  # shooting
+  - késel  # stabbing
+  - erőszak  # violence
+  - bántalmaz  # abuse
+  - verekedés  # brawl
+  - rablás  # robbery
+  - kirabol  # robbed
+  - betörő  # burglar
+  - bűncselekmény  # crime
+  - bűnöző  # criminal
+  - letartóztat  # arrest
+  - őrizetbe  # taken into custody
+  - börtön  # prison
+  - vádemel  # indictment
+  - pedofil  # paedophile
+  - csaló  # fraudster
+  - csalás  # fraud
+  - korrupci  # corruption
+  - botrány  # scandal
+  # war, terror
+  - háború  # war
+  - fegyveres  # armed
+  - terror  # terror
+  - merénylet  # assassination
+  - robbanás  # explosion
+  - bombáz  # bombing
+  - rakétatámadás  # missile attack
+  - légicsapás  # air strike
+  - ostrom  # siege
+  - túszejt  # hostage-taking
+  - túszok  # hostages
+  # disasters, illness
+  - katasztróf  # disaster
+  - földrengés  # earthquake
+  - árvíz  # flood
+  - tűzvész  # blaze
+  - leégett  # burned down
+  - lángokban  # in flames
+  - járvány  # epidemic
+  - rákos  # cancerous
+  - daganat  # tumour
+  # crisis, bad economic news
+  - csőd  # bankruptcy
+  - válság  # crisis
+  - elbocsát  # layoff
+  - leépítés  # downsizing
+  - sztrájk  # strike
+  - tüntetés  # protest
+  # Optional: to block political news, remove the # in front of the lines below
+  # - kormány  # government
+  # - miniszter  # minister
+  # - parlament  # parliament
+  # - ellenzék  # opposition
+  # - fidesz  # party name
+  # - választás  # election
+
+# Whole words: match only as a standalone word (e.g. "öl" (kills) does not block "völgy" (valley)).
+block_words:
+  - öl  # kills
+  - ölt  # killed
+  - megölt  # murdered
+  - lelőtték  # was shot
+  - rák  # cancer
+  - per  # lawsuit
+  - túsz  # hostage
+  - túszt  # hostage
+
+# Exceptions: if an article contains any of these, the blocked terms are ignored.
+allow_phrases:
+  - halálosan jó  # "deadly good"
+  - életmentő  # life-saving
+  - megmentett  # rescued
+  - túlélte  # survived
+
+# Articles whose title starts with one of these are hidden (sponsored content, ads).
+block_title_prefixes:
+  - "Szponzorált"   # sponsored
+  - "PR-cikk"       # PR article
+  - "Hirdetés"      # advertisement

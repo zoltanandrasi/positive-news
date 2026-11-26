@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "_article.html" import card %}
+{% block title %}{{ category.name }} · {{ site_title }}{% endblock %}
+{% block content %}
+  <h1 class="page-title">{{ category.name }}</h1>
+  {% if articles %}
+    <div class="list">
+      {% for a in articles %}{{ card(a, category_names) }}{% endfor %}
+    </div>
+    {% if pages > 1 %}
+      <nav class="pager">
+        {% if page > 1 %}<a href="?page={{ page - 1 }}">{{ t.newer }}</a>{% endif %}
+        <span>{{ page }} / {{ pages }}</span>
+        {% if page < pages %}<a href="?page={{ page + 1 }}">{{ t.older }}</a>{% endif %}
+      </nav>
+    {% endif %}
+  {% else %}
+    <p class="empty">{{ t.empty_category }}</p>
+  {% endif %}
+{% endblock %}

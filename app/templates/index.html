@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "_article.html" import card %}
+{% block content %}
+  {% if not top %}
+    <section class="empty">
+      <h2>{{ t.no_news_title }}</h2>
+      <p>{{ t.no_news_body }} <a href="/status">{{ t.status }}</a></p>
+    </section>
+  {% else %}
+    <section class="top">
+      <h2 class="section-title">{{ t.latest }}</h2>
+      <div class="grid top-grid">
+        {% for a in top %}{{ card(a, category_names, show_category=true, big=loop.first) }}{% endfor %}
+      </div>
+    </section>
+
+    {% for s in sections %}
+      <section>
+        <h2 class="section-title"><a href="/category/{{ s.category.slug }}">{{ s.category.name }}</a></h2>
+        <div class="grid">
+          {% for a in s.articles %}{{ card(a, category_names) }}{% endfor %}
+        </div>
+        <p class="more"><a href="/category/{{ s.category.slug }}">{{ t.more_in.format(name=s.category.name) }}</a></p>
+      </section>
+    {% endfor %}
+  {% endif %}
+{% endblock %}
