@@ -36,8 +36,7 @@ is to make the image public (the code contains no secrets):
 1. **File Station**: create a folder, e.g. `docker/positive-news`, and inside it two
    empty subfolders: `config` and `data`. Synology does not create missing
    bind-mount folders, so without them the project fails to start with
-   "Bind mount failed: ... does not exist". Leave both empty: the default
-   `feeds.yaml` and `filters.yaml` are copied into `config` on first start.
+   "Bind mount failed: ... does not exist". Leave both empty.
 2. **Container Manager → Project → Create**
    - Project name: `positive-news`
    - Path: the folder above
@@ -55,16 +54,15 @@ check that the DSM firewall (Control Panel → Security → Firewall) allows tra
 from the Docker networks, and that the NAS itself has a working DNS server under
 Control Panel → Network → General.
 
-### 3. Updating to a new version
+### 3. Updates
 
-Container Manager → **Image** tab: if the `positive-news` image shows an
-"Update available" badge, click it and the container restarts on the new
-version. If there is no badge: Project → `positive-news` → **Action → Stop**,
-then **Action → Build** (pulls the `latest` image again), then **Start**.
+Updates are automatic. The compose file includes Watchtower, which checks GitHub
+every hour and restarts `positive-news` when a new image is available (it only
+touches containers with the `com.centurylinklabs.watchtower.enable` label). The
+`/status` page shows the running version.
 
-After changing `docker-compose.yml` (for example adding `dns:`), use
-Project → `positive-news` → **Action → Stop**, edit the YAML in the project's
-**YAML Configurations** tab, save, then **Action → Build** so the change takes effect.
+To update right away: Project → `positive-news` → **Action → Build**
+(`pull_policy: always` makes it download the newest image).
 
 ## Settings
 
@@ -83,9 +81,14 @@ Restart the project after changing them.
 
 ### Feeds and filters
 
-On first start, `config/feeds.yaml` and `config/filters.yaml` are created in the
-project folder. Edit them in File Station (or with the Text Editor package);
-changes apply from the next refresh.
+The app uses its built-in feed list and filter list, and they are updated
+automatically with every new version. On each start, up-to-date copies are
+written to the `config` folder as `feeds.example.yaml` and `filters.example.yaml`.
+
+To customize, copy `feeds.example.yaml` to `feeds.yaml` (or
+`filters.example.yaml` to `filters.yaml`) in File Station and edit it. Your file
+then replaces the built-in one, and changes apply from the next refresh. Delete it
+to go back to the built-in list. The `/status` page shows which one is in use.
 
 - **New feed:** add it to the `feeds:` list with a name, URL and category.
 - **Broken feed:** it shows in red on the `/status` page; fix the URL or add
@@ -94,6 +97,9 @@ changes apply from the next refresh.
   what was blocked and why; adjust the lists in `filters.yaml`. The filter terms
   are Hungarian because the articles are, and each has its English meaning in a
   comment.
+
+Earlier versions copied the lists into `config` on first start. An unedited copy
+like that is renamed to `*.yaml.old` automatically so the built-in list is used.
 
 ## Development
 

@@ -1,7 +1,8 @@
 # News sources and categories.
-# On the NAS this file lives in the project's "config" folder and can be edited freely.
-# It is re-read on every refresh, so changes apply from the next refresh
-# (or restart the project in Container Manager to apply them right away).
+# The app uses its built-in copy of this list, which is updated with every new version.
+# To use your own list instead, copy config/feeds.example.yaml to config/feeds.yaml
+# on the NAS and edit that. Delete config/feeds.yaml to go back to the built-in list.
+# The file is re-read on every refresh, so changes apply from the next refresh.
 #
 # The "/status" page shows which feeds work and how many articles each one returned.
 

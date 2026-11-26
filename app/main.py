@@ -118,7 +118,9 @@ def create_app(settings: Settings | None = None, start_scheduler: bool = True) -
     def status(request: Request):
         return render(request, "status.html", feeds=db.feed_statuses(), blocked=db.blocked(100),
                       total=db.count(), interval=settings.refresh_interval_hours,
-                      retention=settings.retention_days)
+                      retention=settings.retention_days, version=settings.app_version,
+                      feeds_custom=settings.is_custom("feeds.yaml"),
+                      filters_custom=settings.is_custom("filters.yaml"))
 
     @app.get("/healthz", response_class=PlainTextResponse)
     def healthz():
