@@ -6,6 +6,9 @@
      {{ t.status_refresh }}: <strong>{{ t.status_every_hours.format(n="%g" | format(interval)) }}</strong> ·
      {{ t.status_retention }}: <strong>{{ t.status_days.format(n=retention) }}</strong> ·
      {{ t.footer_last_refresh }}: <strong>{{ last_run | hutime }}</strong></p>
+  <p>{{ t.status_version }}: <strong>{{ version }}</strong> ·
+     {{ t.status_config }}: feeds.yaml <strong>{{ t.status_config_custom if feeds_custom else t.status_config_builtin }}</strong>,
+     filters.yaml <strong>{{ t.status_config_custom if filters_custom else t.status_config_builtin }}</strong></p>
 
   <h2 class="section-title">{{ t.status_feeds }}</h2>
   {% if feeds %}

@@ -1,10 +1,13 @@
 # Synology Container Manager > Project > Create: paste this file.
 # Before creating the project, create two empty subfolders in the project folder:
 # "config" and "data". Synology does not create them automatically.
-# The default feeds.yaml and filters.yaml are copied into "config" on first start.
+#
+# Updates are automatic: Watchtower checks GitHub every hour and restarts
+# positive-news when a new version is available. Nothing else is touched.
 services:
   positive-news:
     image: ghcr.io/zoltanandrasi/positive-news:latest
+    pull_policy: always      # download the newest image on every Build/start
     container_name: positive-news
     restart: unless-stopped
     dns:                     # public DNS servers: some Synology setups give containers
@@ -21,4 +24,21 @@ services:
       TZ: "Europe/Budapest"
     volumes:
       - ./data:/data          # database
-      - ./config:/config      # feeds.yaml and filters.yaml (created on first start)
+      - ./config:/config      # optional own feeds.yaml / filters.yaml (see README)
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: positive-news-watchtower
+    restart: unless-stopped
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      WATCHTOWER_LABEL_ENABLE: "true"     # only update containers with the label above
+      WATCHTOWER_POLL_INTERVAL: "3600"    # check every hour (seconds)
+      WATCHTOWER_CLEANUP: "true"          # remove the old image after updating
+      TZ: "Europe/Budapest"

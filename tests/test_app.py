@@ -123,8 +123,11 @@ def test_default_config_is_created(tmp_path, monkeypatch):
     monkeypatch.setenv("CONFIG_DIR", str(tmp_path / "c"))
     s = Settings()
     app = create_app(s, start_scheduler=False)
-    assert (tmp_path / "c" / "feeds.yaml").exists()
-    assert (tmp_path / "c" / "filters.yaml").exists()
+    # built-in lists are used; only example copies are written
+    assert not (tmp_path / "c" / "feeds.yaml").exists()
+    assert (tmp_path / "c" / "feeds.example.yaml").exists()
+    assert (tmp_path / "c" / "filters.example.yaml").exists()
+    assert s.feeds_file.parent.name == "defaults"
     with TestClient(app) as client:
         r = client.get("/")
         assert r.status_code == 200 and "Még nincsenek hírek" in r.text
@@ -150,3 +153,28 @@ def test_empty_feed_is_reported_as_error(settings):
     fetcher.run_once(settings, db, client=mock_client())
     status = {s["name"]: s for s in db.feed_statuses()}["Ures"]
     assert status["ok"] == 0 and "no articles" in status["error"]
+
+
+def test_unedited_old_default_is_moved_aside(tmp_path, monkeypatch):
+    monkeypatch.setenv("DATA_DIR", str(tmp_path / "d"))
+    monkeypatch.setenv("CONFIG_DIR", str(tmp_path / "c"))
+    (tmp_path / "c").mkdir()
+    from app.config import DEFAULTS_DIR, ensure_config
+    # an unedited copy of the current default counts as "not customized"
+    (tmp_path / "c" / "filters.yaml").write_bytes((DEFAULTS_DIR / "filters.yaml").read_bytes())
+    # an edited file is kept
+    (tmp_path / "c" / "feeds.yaml").write_text("categories: []\nfeeds: []\n", encoding="utf-8")
+    s = Settings()
+    ensure_config(s)
+    assert not (tmp_path / "c" / "filters.yaml").exists()
+    assert (tmp_path / "c" / "filters.yaml.old").exists()
+    assert s.filters_file.parent.name == "defaults"
+    assert s.feeds_file == tmp_path / "c" / "feeds.yaml"
+
+
+def test_status_shows_version(settings, monkeypatch):
+    monkeypatch.setenv("APP_VERSION", "2026-11-26-abc1234")
+    app = create_app(Settings(), start_scheduler=False)
+    with TestClient(app) as client:
+        r = client.get("/status")
+        assert "2026-11-26-abc1234" in r.text and "saját (config mappa)" in r.text

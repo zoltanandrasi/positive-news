@@ -1,4 +1,8 @@
 # Negative news filter.
+# The app uses its built-in copy of this list, which is updated with every new version.
+# To use your own list instead, copy config/filters.example.yaml to config/filters.yaml
+# on the NAS and edit that. Delete config/filters.yaml to go back to the built-in list.
+#
 # An article is hidden if its title or lead contains any blocked term.
 # Matching is case-insensitive. Changes apply from the next refresh
 # (articles already stored are not re-checked).
